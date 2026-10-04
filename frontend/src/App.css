@@ -1,207 +1,554 @@
-.dashboard-page {
-  min-height: 100vh;
-  background: #f6f3ed;
+*{box-sizing:border-box}
+:root{font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#342d27;background:#f8f5ef}
+html,body,#root{margin:0;min-width:320px;min-height:100%}
+body{min-height:100vh;background:#f8f5ef}
+button,input,textarea{font:inherit}
+button{cursor:pointer}
+button:disabled{cursor:not-allowed;opacity:.5}
+input,textarea{color:inherit}
+::selection{background:#e5d4bf}
+.primary-button,.secondary-button{border-radius:999px;padding:11px 20px;font-weight:700;transition:.18s ease}
+.primary-button{border:0;background:#40362e;color:#fffaf3;box-shadow:0 7px 18px rgba(58,46,36,.11)}
+.primary-button:hover:not(:disabled){transform:translateY(-1px);background:#302923}
+.secondary-button{border:1px solid #d8cbbd;background:rgba(255,255,255,.55);color:#6d5f52}
+.secondary-button:hover:not(:disabled){background:#fffaf3}
+.eyebrow{margin:0 0 10px;color:#9a856e;font-size:10px;font-weight:850;letter-spacing:2px}
+
+/* AUTH */
+.app{min-height:100vh;display:grid;place-items:center;padding:28px;background:radial-gradient(circle at top,#fffdf8,#f7f3ec 58%,#f1eadf)}
+.app-loading{color:#7e6c5a}
+.loading-mark{font-size:30px;animation:pulse 1.5s ease-in-out infinite}
+.auth-container{width:min(460px,100%);text-align:center}
+.auth-brand{margin-bottom:24px;color:#43382f;font-size:14px;font-weight:850;letter-spacing:3px}
+.auth-brand span{color:#a17f5c}
+.auth-kicker{margin:0 0 12px;color:#a08f7e;font-size:10px;font-weight:800;letter-spacing:2px}
+.auth-title{margin:0;font-family:Georgia,"Times New Roman",serif;font-size:clamp(40px,7vw,60px);font-weight:500;letter-spacing:-2px}
+.subtitle{margin:17px auto 28px;color:#786d62;line-height:1.65}
+.auth-form{display:grid;gap:15px;text-align:left}
+.auth-form label{display:grid;gap:7px;color:#62574d;font-size:12px;font-weight:700}
+.auth-form input{width:100%;padding:13px 15px;border:1px solid #d9cfc3;border-radius:12px;outline:0;background:rgba(255,255,255,.75)}
+.auth-form input:focus{border-color:#a48a6d;box-shadow:0 0 0 3px rgba(164,138,109,.1)}
+.auth-button{width:100%;margin-top:3px}
+.auth-message{padding:11px 14px;border-radius:11px;background:#eee5d9;color:#66594c;font-size:12px}
+.switch-button{margin-top:19px;border:0;background:transparent;color:#776654;text-decoration:underline}
+.principle{margin-top:28px;color:#a09284;font-family:Georgia,"Times New Roman",serif;font-size:12px;font-style:italic}
+
+/* LAYOUT */
+.journal-app{min-height:100vh;background:#f8f5ef}
+.journal-sidebar{position:fixed;inset:0 auto 0 0;z-index:50;width:252px;display:flex;flex-direction:column;padding:24px 15px 18px;border-right:1px solid #e1d8cc;background:linear-gradient(180deg,#eee5d8,#f3ece2)}
+.sidebar-top{flex:0 0 auto}
+.sidebar-brand{display:flex;align-items:center;gap:8px;padding:4px 8px 22px;color:#453a31;font-size:13px;font-weight:850;letter-spacing:2.8px}
+.brand-sparkle{color:#a0805d;font-size:16px}
+.new-journal-button{width:100%;display:flex;align-items:center;gap:8px;padding:11px 13px;border:1px solid #d1c1ae;border-radius:11px;background:rgba(255,252,247,.72);color:#4c4035;font-weight:700;text-align:left}
+.new-journal-button:hover{background:#fffaf3}
+.sidebar-search{margin-top:10px}
+.sidebar-search.open{display:flex;gap:5px}
+.sidebar-search input{min-width:0;flex:1;padding:9px 11px;border:1px solid #d8cbbc;border-radius:9px;outline:0;background:rgba(255,255,255,.6);font-size:12px}
+.search-trigger{width:100%;display:flex;align-items:center;gap:9px;padding:9px 10px;border:0;border-radius:9px;background:transparent;color:#7b6d60;text-align:left}
+.search-trigger:hover{background:rgba(255,250,243,.65)}
+.search-symbol{font-size:17px}
+.search-close{width:32px;border:0;border-radius:8px;background:transparent;color:#8d7c6c}
+.sidebar-history{min-height:0;flex:1;margin-top:24px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:#cfc0ae transparent}
+.sidebar-empty-state,.sidebar-empty{padding:10px;color:#9c8f82;font-size:12px;line-height:1.5}
+.journal-history-list{display:flex;flex-direction:column;gap:15px}
+.history-group{display:grid;gap:3px}
+.sidebar-label{margin:0 9px 5px;color:#a08f7e;font-size:9px;font-weight:850;letter-spacing:1.6px;text-transform:uppercase}
+.history-item{width:100%;display:flex;align-items:flex-start;gap:9px;padding:9px 10px;border:0;border-radius:9px;background:transparent;color:#685d52;text-align:left}
+.history-item:hover{background:rgba(255,250,243,.65)}
+.history-item.active{background:#fffaf2;color:#3d332a;box-shadow:0 3px 12px rgba(70,54,42,.06)}
+.history-icon{width:15px;flex:0 0 15px;padding-top:2px;color:#b5a594;font-size:10px;text-align:center}
+.history-icon.connected{color:#967452}
+.history-copy{min-width:0;display:grid;gap:2px}
+.history-title{overflow:hidden;font-size:12px;font-weight:650;text-overflow:ellipsis;white-space:nowrap}
+.history-date{color:#a29486;font-size:10px}
+.sidebar-bottom{flex:0 0 auto;padding-top:13px;border-top:1px solid #ddd1c3}
+.sidebar-tool-button{width:100%;display:flex;align-items:center;gap:9px;padding:9px 10px;border:0;border-radius:9px;background:transparent;color:#67594c;font-weight:650;text-align:left}
+.sidebar-tool-button:hover{background:rgba(255,250,243,.65)}
+.sidebar-tool-button span:first-child{color:#9e7d5a}
+.sidebar-principle{margin:13px 10px 0;color:#a19283;font-family:Georgia,"Times New Roman",serif;font-size:10px;font-style:italic;line-height:1.5}
+
+/* WORKSPACE */
+.journal-workspace{min-height:100vh;margin-left:252px;padding-top:68px;background:radial-gradient(circle at 70% 0,rgba(255,255,255,.72),transparent 38%),#f8f5ef}
+.workspace-header{position:fixed;top:0;right:0;left:252px;z-index:40;height:68px;display:flex;align-items:center;justify-content:flex-end;padding:0 32px;border-bottom:1px solid rgba(222,214,203,.65);background:rgba(248,245,239,.84);backdrop-filter:blur(14px)}
+.workspace-mobile-brand{display:none;color:#493d33;font-size:11px;font-weight:850;letter-spacing:2px}
+.account-wrapper{position:relative}
+.avatar-button{width:37px;height:37px;display:grid;place-items:center;border:1px solid #cfbda9;border-radius:50%;background:#e8d8c5;color:#5d4938;font-size:13px;font-weight:800}
+.account-menu{position:absolute;top:46px;right:0;width:240px;padding:10px;border:1px solid #dfd2c3;border-radius:14px;background:#fffaf4;box-shadow:0 18px 50px rgba(62,48,37,.14);animation:menuIn .18s ease}
+.account-menu-label{margin:5px 7px;color:#a08f7e;font-size:9px;font-weight:800;letter-spacing:1.5px}
+.account-email{margin:0;padding:5px 7px 9px;overflow:hidden;color:#574b41;font-size:12px;text-overflow:ellipsis;white-space:nowrap}
+.account-menu-divider,.journal-menu-divider{height:1px;margin:5px 0;background:#e9dfd3}
+.account-logout{width:100%;padding:9px;border:0;border-radius:8px;background:transparent;color:#725d4c;font-size:12px;font-weight:650;text-align:left}
+.account-logout:hover{background:#f2e8dc}
+.workspace-stage{animation:pageIn .25s cubic-bezier(.22,1,.36,1)}
+.journal-compose-page,.journal-reading-page{width:min(760px,calc(100% - 64px));margin:0 auto;padding:45px 0 80px}
+
+/* COMPOSE */
+.compose-topline,.reading-topline{display:flex;align-items:center;justify-content:space-between;gap:15px;margin-bottom:26px}
+.inline-date-input{padding:6px 0;border:0;border-bottom:1px solid #d8cbbc;outline:0;background:transparent;color:#78695b;font-size:12px}
+.compose-hint{color:#a09386;font-size:11px}
+.journal-compose-form{width:100%}
+.compose-title-input{width:100%;padding:0 0 13px;border:0;outline:0;background:transparent;color:#332b24;font-family:Georgia,"Times New Roman",serif;font-size:clamp(32px,4vw,46px);line-height:1.15}
+.compose-title-input::placeholder{color:#b3a79b}
+.compose-rule,.reading-rule{height:1px;margin-bottom:18px;background:#e1d7ca}
+.writing-prompt{margin-bottom:14px;padding:12px 14px;border:1px dashed #ddcfbf;border-radius:12px;background:rgba(255,255,255,.35);color:#76685b;font-family:Georgia,"Times New Roman",serif;font-size:13px;line-height:1.5}
+.writing-prompt p{margin:0 0 6px}
+.another-prompt{padding:0;border:0;background:transparent;color:#8c6d4d;font-size:11px;text-decoration:underline}
+.compose-textarea{width:100%;min-height:350px;display:block;resize:vertical;padding:24px 0;border:0;outline:0;background:transparent;color:#40372f;font-family:Georgia,"Times New Roman",serif;font-size:18px;line-height:1.85}
+.compose-textarea::placeholder{color:#b2a79c}
+.compose-footer{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-top:15px;border-top:1px solid #e5dbcf}
+.compose-status{display:flex;align-items:center;gap:8px;color:#a19487;font-size:10px}
+.status-dot{color:#c0b2a4}
+.edit-actions{display:flex;gap:9px}
+
+/* READING */
+.reading-header{margin-bottom:20px}
+.reading-header h1{margin:0;color:#312a24;font-family:Georgia,"Times New Roman",serif;font-size:clamp(36px,5vw,52px);font-weight:500;line-height:1.1;letter-spacing:-1.5px}
+.reading-connection-mark{margin:12px 0 0;color:#8c7157;font-size:11px}
+.reading-content{padding:8px 0 18px}
+.reading-content p{margin:0;color:#443a32;font-family:Georgia,"Times New Roman",serif;font-size:18px;line-height:1.9;white-space:pre-wrap}
+.reading-footer{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-top:18px;padding-top:16px;border-top:1px solid #e5dbcf;color:#9b8c7d;font-size:11px}
+.text-action-button{border:0;background:transparent;color:#80674f;font-weight:650;text-decoration:underline}
+.journal-menu-wrapper{position:relative}
+.journal-more-button{width:36px;height:36px;border:1px solid #ddd1c3;border-radius:50%;background:rgba(255,255,255,.55);color:#6f6154;font-size:18px}
+.journal-menu{position:absolute;top:43px;right:0;z-index:30;width:165px;padding:6px;border:1px solid #dfd3c5;border-radius:12px;background:#fffaf4;box-shadow:0 15px 42px rgba(62,48,37,.14)}
+.journal-menu button{width:100%;padding:8px 9px;border:0;border-radius:7px;background:transparent;color:#65574b;font-size:11px;text-align:left}
+.journal-menu button:hover{background:#f3eadf}
+.journal-menu-danger{color:#9b625c!important}
+.workspace-empty{width:min(470px,calc(100% - 40px));margin:120px auto 0;text-align:center}
+.workspace-empty span{color:#987655;font-size:24px}
+.workspace-empty h2{margin:12px 0 8px;font-family:Georgia,"Times New Roman",serif;font-size:32px;font-weight:500}
+.workspace-empty p{margin:0 0 22px;color:#7c7064;line-height:1.65}
+.workspace-message{position:fixed;right:26px;bottom:24px;z-index:100;max-width:340px;padding:10px 15px;border:1px solid #ddcfbf;border-radius:999px;background:#fff9f1;color:#716254;font-size:11px;box-shadow:0 10px 30px rgba(60,46,34,.1)}
+
+/* MODALS */
+.popup-overlay{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;padding:22px;overflow-y:auto;background:rgba(42,35,29,.42);backdrop-filter:blur(8px);animation:fadeIn .2s ease}
+.soft-overlay{z-index:1100}
+.pocket-note-modal,.past-popup{position:relative;width:min(590px,100%);max-height:calc(100vh - 44px);overflow-y:auto;padding:38px 36px 32px;border:1px solid rgba(175,145,111,.32);border-radius:24px;background:radial-gradient(circle at top,#fffdf7,#fff9ef 58%,#f8efe2);box-shadow:0 30px 90px rgba(47,37,28,.22);text-align:center;animation:popupIn .35s cubic-bezier(.22,1,.36,1)}
+.pocket-note-modal{width:min(430px,100%)}
+.modal-x{position:absolute;top:14px;right:16px;width:32px;height:32px;border:0;border-radius:50%;background:transparent;color:#8e7b69;font-size:22px}
+.modal-x:hover{background:#f0e5d8}
+.pocket-note-heart,.popup-icon{width:54px;height:54px;display:grid;place-items:center;margin:0 auto 18px;border-radius:50%;background:#eee0ce;color:#896d4f;font-size:22px}
+.pocket-note-modal h2{margin:10px auto 22px;color:#41362d;font-family:Georgia,"Times New Roman",serif;font-size:24px;font-weight:500;line-height:1.45}
+.pocket-another{display:block;margin:0 auto 18px}
+.pocket-close{min-width:100px}
+.past-popup h2{max-width:450px;margin:10px auto 15px;color:#342c25;font-family:Georgia,"Times New Roman",serif;font-size:27px;font-weight:500;line-height:1.3}
+.popup-description{margin:0 auto 24px;color:#756a60;font-size:14px;line-height:1.65}
+.popup-actions{display:flex;justify-content:center;gap:10px}
+.connection-reveal-header{display:flex;align-items:flex-start;justify-content:space-between;gap:15px;text-align:left}
+.connection-reveal-header h2{margin:0}
+.connection-counter{flex:0 0 auto;padding:5px 10px;border-radius:999px;background:#eee1cf;color:#8d7254;font-size:10px;font-weight:800}
+.then-now-grid{display:grid;grid-template-columns:1fr 36px 1fr;align-items:stretch;margin-top:24px}
+.then-now-card{padding:18px;border:1px solid #e0d1bf;border-radius:15px;background:rgba(238,225,207,.48);text-align:left}
+.now-card{background:rgba(255,253,248,.68)}
+.then-now-label{margin-bottom:5px;color:#947758;font-size:9px;font-weight:850;letter-spacing:1.8px}
+.then-now-date{margin:0 0 11px;color:#9c8b7a;font-size:10px}
+.then-now-card blockquote{margin:0;color:#483d34;font-family:Georgia,"Times New Roman",serif;font-size:14px;font-style:italic;line-height:1.65;white-space:pre-wrap}
+.then-now-connector{display:grid;place-items:center;color:#ad8d6a}
+.past-memory-thought{margin:21px auto;color:#706357;font-family:Georgia,"Times New Roman",serif;font-size:13px;font-style:italic;line-height:1.6}
+.connection-footer{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:16px}
+.connection-navigation{display:flex;gap:8px}
+.popup-delete-button{display:block;margin:16px auto 0;border:0;background:transparent;color:#a16c64;font-size:10px;text-decoration:underline}
+
+/* ANIMATION */
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes popupIn{from{opacity:0;transform:translateY(14px) scale(.97)}to{opacity:1;transform:none}}
+@keyframes pageIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@keyframes menuIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+@keyframes pulse{50%{opacity:.45}}
+
+/* TABLET */
+@media(max-width:900px){
+  .journal-sidebar{width:220px}
+  .journal-workspace{margin-left:220px}
+  .workspace-header{left:220px;padding:0 22px}
+  .journal-compose-page,.journal-reading-page{width:min(680px,calc(100% - 44px))}
 }
 
-.topbar {
-  width: 100%;
-  height: 72px;
-  padding: 0 6%;
-  border-bottom: 1px solid #ded8ce;
+/* MOBILE */
+@media(max-width:700px){
+
+  .journal-sidebar{position:static;width:100%;height:auto;padding:14px;border-right:0;border-bottom:1px solid #dfd4c6}
+  .sidebar-brand,.sidebar-principle{display:none}
+  .sidebar-history{max-height:155px;margin-top:14px}
+  .sidebar-bottom{display:flex;gap:4px;padding-top:8px}
+  .sidebar-tool-button{justify-content:center}
+  .journal-workspace{min-height:auto;margin-left:0;padding-top:60px}
+  .workspace-header{position:absolute;left:0;height:60px;padding:0 16px;justify-content:space-between}
+  .workspace-mobile-brand{display:block}
+  .journal-compose-page,.journal-reading-page{width:calc(100% - 30px);padding:32px 0 60px}
+  .compose-topline,.reading-topline{margin-bottom:20px}
+  .compose-title-input{font-size:31px}
+  .compose-textarea{min-height:290px;font-size:16px}
+  .compose-footer,.reading-footer,.connection-footer{align-items:stretch;flex-direction:column}
+  .save-journal-button{width:100%}
+  .edit-actions{width:100%}
+  .edit-actions button{flex:1}
+  .popup-overlay{align-items:flex-start;padding:15px}
+  .pocket-note-modal,.past-popup{margin:auto 0;padding:32px 20px 26px;border-radius:21px}
+  .popup-actions,.connection-navigation{flex-direction:column;width:100%}
+  .popup-actions button,.connection-navigation button{width:100%}
+  .then-now-grid{grid-template-columns:1fr}
+  .then-now-connector{height:32px}
+  .workspace-message{right:15px;bottom:15px;left:15px;max-width:none;text-align:center}
+  .account-menu{width:min(240px,calc(100vw - 30px))}}
+  /* =========================================================
+   PAST ME — FINAL VISUAL POLISH
+   ========================================================= */
+
+/* Main writing area: tighter and more intentional */
+.journal-compose-page,
+.journal-reading-page {
+  width: min(700px, calc(100% - 64px));
+  padding-top: 38px;
+}
+
+/* Top date / helper text */
+.compose-topline {
+  margin-bottom: 30px;
+}
+
+.inline-date-input {
+  color: #77695c;
+  font-size: 12px;
+}
+
+.compose-hint {
+  color: #a3978b;
+  font-size: 11px;
+}
+
+/* Journal title: darker and clearer */
+.compose-title-input {
+  color: #3b322b;
+  font-size: clamp(34px, 4vw, 45px);
+  font-weight: 500;
+  letter-spacing: -1.2px;
+}
+
+.compose-title-input::placeholder {
+  color: #9f9285;
+  opacity: 1;
+}
+
+/* Cleaner divider below title */
+.compose-rule {
+  margin-bottom: 18px;
+  background: #ddd2c5;
+}
+
+/* Writing prompt */
+.writing-prompt {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 6px;
+
+  margin-bottom: 22px;
+  padding: 12px 14px;
+
+  border: 1px dashed #d8c8b6;
+  border-radius: 12px;
+
+  background: rgba(255, 252, 247, 0.55);
+
+  color: #75685c;
+
+  font-family: inherit;
+  font-size: 12px;
+  line-height: 1.5;
 }
 
-.topbar-logo {
+.writing-prompt p {
   margin: 0;
 }
 
-.logout-button,
-.delete-button {
-  border: none;
-  background: transparent;
-  color: #716657;
-  font-weight: 600;
+.writing-prompt strong {
+  color: #4f4338;
+
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 13px;
+  font-weight: 500;
 }
 
-.dashboard-content {
-  width: min(900px, 90%);
-  margin: 0 auto;
+.another-prompt {
+  margin-left: auto;
+
+  flex-shrink: 0;
+
+  color: #927453;
+
+  font-size: 10px;
+  white-space: nowrap;
 }
 
-.memory-hero {
-  padding: 90px 0 70px;
-}
-
-.memory-hero h1 {
-  max-width: 750px;
-  margin: 10px 0 0;
-  font-size: clamp(38px, 6vw, 68px);
-  line-height: 1.05;
-  letter-spacing: -3px;
-}
-
-.memory-hero .subtitle {
-  margin-left: 0;
-  text-align: left;
-}
-
-.memory-form {
-  margin-top: 40px;
-  padding: 24px;
-  background: #fff;
-  border: 1px solid #ded8ce;
-  border-radius: 20px;
-}
-
-.memory-form textarea {
+/* Actual journal writing area */
+.compose-textarea {
   width: 100%;
-  resize: vertical;
-  border: none;
-  outline: none;
-  font: inherit;
+
+  min-height: 330px;
+  max-height: 520px;
+
+  padding: 18px 2px;
+
+  resize: none;
+
+  color: #41372f;
+
   font-size: 18px;
-  line-height: 1.7;
+  line-height: 1.9;
+
+  caret-color: #80664d;
 }
 
-.memory-form-bottom {
-  margin-top: 20px;
-  padding-top: 20px;
-  border-top: 1px solid #ebe6dd;
-  display: flex;
-  align-items: end;
-  justify-content: space-between;
-  gap: 20px;
+.compose-textarea::placeholder {
+  color: #a99c8f;
+  opacity: 1;
 }
 
-.date-field {
-  display: flex;
-  flex-direction: column;
+/* Keep bottom controls near the journal */
+.compose-footer {
+  margin-top: 8px;
+  padding-top: 15px;
+
+  border-top: 1px solid #dfd5c9;
+}
+
+/* Draft status */
+.compose-status {
   gap: 7px;
+
+  color: #a09284;
+
+  font-size: 10px;
 }
 
-.date-field label {
-  color: #918b82;
+.status-dot {
+  color: #c5b8aa;
+}
+
+/* Save button */
+.save-journal-button {
+  min-width: 124px;
+
+  padding: 11px 20px;
+
+  box-shadow: 0 6px 17px rgba(58, 46, 36, 0.11);
+}
+
+/* Slightly cleaner sidebar */
+.journal-sidebar {
+  width: 245px;
+}
+
+.journal-workspace {
+  margin-left: 245px;
+}
+
+.workspace-header {
+  left: 245px;
+}
+
+/* Sidebar brand */
+.sidebar-brand {
+  padding-bottom: 20px;
+
   font-size: 12px;
-  font-weight: 700;
+  letter-spacing: 2.8px;
 }
 
-.date-field input {
-  padding: 10px;
-  border: 1px solid #d7d1c7;
-  border-radius: 10px;
-  background: #fff;
+/* Journal rows */
+.history-item {
+  padding: 8px 9px;
 }
 
-.memory-message {
-  color: #716657;
-  font-size: 14px;
+.history-item.active {
+  background: rgba(255, 250, 243, 0.92);
+
+  box-shadow:
+    inset 2px 0 0 #9a7857,
+    0 2px 9px rgba(70, 54, 42, 0.05);
 }
 
-.memories-section {
-  padding: 60px 0 100px;
-  border-top: 1px solid #ded8ce;
+.history-title {
+  font-size: 11.5px;
 }
 
-.section-heading {
-  display: flex;
-  align-items: end;
-  justify-content: space-between;
-  margin-bottom: 45px;
+.history-date {
+  font-size: 9px;
 }
 
-.section-heading h2 {
-  margin: 5px 0 0;
-  font-size: 36px;
+/* Month labels */
+.sidebar-label {
+  margin-top: 2px;
+
+  font-size: 8.5px;
+  letter-spacing: 1.5px;
 }
 
-.section-heading span {
-  color: #918b82;
-  font-size: 14px;
-}
-
-.memory-list {
-  position: relative;
-  margin-left: 8px;
-  border-left: 1px solid #cfc8bd;
-}
-
-.memory-card {
-  position: relative;
-  padding: 0 0 45px 38px;
-}
-
-.memory-dot {
-  position: absolute;
-  top: 5px;
-  left: -7px;
-  width: 13px;
-  height: 13px;
-  border: 3px solid #f6f3ed;
-  border-radius: 50%;
-  background: #716657;
-}
-
-.memory-card-content {
-  padding: 22px;
-  border: 1px solid #ded8ce;
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.65);
-}
-
-.memory-card time {
-  color: #918b82;
-  font-size: 12px;
-  font-weight: 700;
-  text-transform: uppercase;
-}
-
-.memory-card p {
-  margin: 12px 0 18px;
-  font-size: 17px;
-  line-height: 1.65;
-}
-
-.delete-button {
-  padding: 0;
+/* Search */
+.search-trigger {
+  color: #806f60;
   font-size: 12px;
 }
 
-.delete-button:hover {
-  color: #1f1f1f;
-}
+/* Bottom sidebar actions */
+.sidebar-tool-button {
+  padding: 8px 9px;
 
-.empty-state {
-  padding: 45px;
-  border: 1px dashed #cfc8bd;
-  border-radius: 16px;
-  color: #918b82;
-  text-align: center;
-}
-
-.empty-state h3 {
-  color: #554f47;
-}
-
-footer {
-  padding: 30px 0 50px;
-  color: #918b82;
   font-size: 12px;
-  text-align: center;
 }
 
-@media (max-width: 600px) {
-  .memory-form-bottom {
+/* Cleaner avatar */
+.avatar-button {
+  width: 36px;
+  height: 36px;
+
+  box-shadow: none;
+}
+
+.avatar-button:hover {
+  background: #e2cfb9;
+}
+
+/* Reading mode shouldn't create giant empty cards */
+.reading-content {
+  min-height: 0;
+
+  padding: 12px 2px 24px;
+}
+
+.reading-content p {
+  font-size: 18px;
+  line-height: 1.85;
+}
+
+/* Softer page entrance */
+.workspace-stage {
+  animation: pastMePageIn 0.28s ease;
+}
+
+@keyframes pastMePageIn {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Desktop: keep workspace centered better */
+@media (min-width: 1100px) {
+  .journal-compose-page,
+  .journal-reading-page {
+    transform: translateX(-20px);
+  }
+}
+
+/* Tablet */
+@media (max-width: 900px) {
+  .journal-sidebar {
+    width: 220px;
+  }
+
+  .journal-workspace {
+    margin-left: 220px;
+  }
+
+  .workspace-header {
+    left: 220px;
+  }
+
+  .journal-compose-page,
+  .journal-reading-page {
+    transform: none;
+
+    width: min(650px, calc(100% - 42px));
+  }
+}
+
+/* Mobile */
+@media (max-width: 700px) {
+  .journal-sidebar {
+    width: 100%;
+  }
+
+  .journal-workspace {
+    margin-left: 0;
+  }
+
+  .workspace-header {
+    left: 0;
+  }
+
+  .journal-compose-page,
+  .journal-reading-page {
+    width: calc(100% - 30px);
+
+    transform: none;
+
+    padding-top: 30px;
+  }
+
+  .compose-topline {
+    margin-bottom: 23px;
+  }
+
+  .compose-title-input {
+    font-size: 31px;
+  }
+
+  .writing-prompt {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .another-prompt {
+    margin-left: 0;
+  }
+
+  .compose-textarea {
+    min-height: 280px;
+
+    font-size: 16px;
+  }
+
+  .compose-footer {
     align-items: stretch;
     flex-direction: column;
   }
 
-  .memory-form-bottom .primary-button {
+  .save-journal-button {
     width: 100%;
   }
+}
+/* Remove browser-looking box from prompt text */
+.writing-prompt strong,
+.writing-prompt b {
+  border: none !important;
+  outline: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 0 !important;
 
-  .memory-hero {
-    padding-top: 60px;
-  }
+  color: #4f4338;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* If the prompt itself is rendered as a button */
+.writing-prompt button:not(.another-prompt) {
+  border: none !important;
+  outline: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+
+  color: #4f4338;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: default;
 }
