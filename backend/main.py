@@ -1,15 +1,13 @@
-import os
-
-from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from openai import OpenAI
-
-load_dotenv()
-
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+from sentence_transformers import SentenceTransformer
 
 app = FastAPI(title="Past Me API")
+
+# Free local embedding model
+embedding_model = SentenceTransformer(
+    "sentence-transformers/all-MiniLM-L6-v2"
+)
 
 app.add_middleware(
     CORSMiddleware,
@@ -33,25 +31,15 @@ def root():
 def health():
     return {"status": "healthy"}
 
+
 @app.get("/test-embedding")
 def test_embedding():
-    try:
-        response = client.embeddings.create(
-            model="text-embedding-3-small",
-            input="I worked so hard to get my visa and study in the US."
-        )
+    text = "I worked so hard to get my visa and study in the US."
 
-        embedding = response.data[0].embedding
+    embedding = embedding_model.encode(text).tolist()
 
-        return {
-            "success": True,
-            "dimensions": len(embedding),
-            "preview": embedding[:5]
-        }
-
-    except Exception as e:
-        return {
-            "success": False,
-            "error_type": type(e).__name__,
-            "error": str(e)
-        }
+    return {
+        "success": True,
+        "dimensions": len(embedding),
+        "preview": embedding[:5]
+    }
