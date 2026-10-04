@@ -105,35 +105,54 @@ function App() {
   }
 
   async function saveMemory(e: React.FormEvent) {
-    e.preventDefault();
+  e.preventDefault();
 
-    if (!session?.user) return;
-    if (!memoryText.trim()) return;
+  if (!session?.user || !session.access_token) return;
+  if (!memoryText.trim()) return;
 
-    setMemoryLoading(true);
-    setMemoryMessage("");
+  setMemoryLoading(true);
+  setMemoryMessage("");
 
+  try {
     const dateToSave = memoryDate
       ? new Date(`${memoryDate}T12:00:00`).toISOString()
       : new Date().toISOString();
 
-    const { error } = await supabase.from("memories").insert({
-      user_id: session.user.id,
-      content: memoryText.trim(),
-      memory_date: dateToSave,
+    const response = await fetch("http://127.0.0.1:8000/memories", {
+      method: "POST",
+
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${session.access_token}`,
+      },
+
+      body: JSON.stringify({
+        content: memoryText.trim(),
+        memory_date: dateToSave,
+      }),
     });
 
-    if (error) {
-      setMemoryMessage(error.message);
-    } else {
-      setMemoryText("");
-      setMemoryDate("");
-      setMemoryMessage("Memory saved.");
-      await fetchMemories();
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.detail || "Could not save memory");
     }
 
+    setMemoryText("");
+    setMemoryDate("");
+    setMemoryMessage("Memory saved.");
+
+    await fetchMemories();
+  } catch (error) {
+    setMemoryMessage(
+      error instanceof Error
+        ? error.message
+        : "Could not save memory."
+    );
+  } finally {
     setMemoryLoading(false);
   }
+}
 
   async function deleteMemory(id: string) {
     const confirmed = window.confirm(
