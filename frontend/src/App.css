@@ -1,0 +1,207 @@
+.dashboard-page {
+  min-height: 100vh;
+  background: #f6f3ed;
+}
+
+.topbar {
+  width: 100%;
+  height: 72px;
+  padding: 0 6%;
+  border-bottom: 1px solid #ded8ce;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.topbar-logo {
+  margin: 0;
+}
+
+.logout-button,
+.delete-button {
+  border: none;
+  background: transparent;
+  color: #716657;
+  font-weight: 600;
+}
+
+.dashboard-content {
+  width: min(900px, 90%);
+  margin: 0 auto;
+}
+
+.memory-hero {
+  padding: 90px 0 70px;
+}
+
+.memory-hero h1 {
+  max-width: 750px;
+  margin: 10px 0 0;
+  font-size: clamp(38px, 6vw, 68px);
+  line-height: 1.05;
+  letter-spacing: -3px;
+}
+
+.memory-hero .subtitle {
+  margin-left: 0;
+  text-align: left;
+}
+
+.memory-form {
+  margin-top: 40px;
+  padding: 24px;
+  background: #fff;
+  border: 1px solid #ded8ce;
+  border-radius: 20px;
+}
+
+.memory-form textarea {
+  width: 100%;
+  resize: vertical;
+  border: none;
+  outline: none;
+  font: inherit;
+  font-size: 18px;
+  line-height: 1.7;
+}
+
+.memory-form-bottom {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #ebe6dd;
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.date-field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.date-field label {
+  color: #918b82;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.date-field input {
+  padding: 10px;
+  border: 1px solid #d7d1c7;
+  border-radius: 10px;
+  background: #fff;
+}
+
+.memory-message {
+  color: #716657;
+  font-size: 14px;
+}
+
+.memories-section {
+  padding: 60px 0 100px;
+  border-top: 1px solid #ded8ce;
+}
+
+.section-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  margin-bottom: 45px;
+}
+
+.section-heading h2 {
+  margin: 5px 0 0;
+  font-size: 36px;
+}
+
+.section-heading span {
+  color: #918b82;
+  font-size: 14px;
+}
+
+.memory-list {
+  position: relative;
+  margin-left: 8px;
+  border-left: 1px solid #cfc8bd;
+}
+
+.memory-card {
+  position: relative;
+  padding: 0 0 45px 38px;
+}
+
+.memory-dot {
+  position: absolute;
+  top: 5px;
+  left: -7px;
+  width: 13px;
+  height: 13px;
+  border: 3px solid #f6f3ed;
+  border-radius: 50%;
+  background: #716657;
+}
+
+.memory-card-content {
+  padding: 22px;
+  border: 1px solid #ded8ce;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.65);
+}
+
+.memory-card time {
+  color: #918b82;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.memory-card p {
+  margin: 12px 0 18px;
+  font-size: 17px;
+  line-height: 1.65;
+}
+
+.delete-button {
+  padding: 0;
+  font-size: 12px;
+}
+
+.delete-button:hover {
+  color: #1f1f1f;
+}
+
+.empty-state {
+  padding: 45px;
+  border: 1px dashed #cfc8bd;
+  border-radius: 16px;
+  color: #918b82;
+  text-align: center;
+}
+
+.empty-state h3 {
+  color: #554f47;
+}
+
+footer {
+  padding: 30px 0 50px;
+  color: #918b82;
+  font-size: 12px;
+  text-align: center;
+}
+
+@media (max-width: 600px) {
+  .memory-form-bottom {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .memory-form-bottom .primary-button {
+    width: 100%;
+  }
+
+  .memory-hero {
+    padding-top: 60px;
+  }
+}
