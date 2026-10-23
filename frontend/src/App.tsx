@@ -71,6 +71,7 @@ function App() {
   const [memories, setMemories] = useState<Memory[]>([]);
   const [selectedMemoryId, setSelectedMemoryId] = useState<string | null>(null);
   const [editorMode, setEditorMode] = useState<EditorMode>("new");
+  const [timelineOpen, setTimelineOpen] = useState(false);
   const [journalTitle, setJournalTitle] = useState("");
   const [journalContent, setJournalContent] = useState("");
   const [draftReady, setDraftReady] = useState(false);
@@ -259,6 +260,7 @@ function App() {
 
     setDraftReady(false);
     setEditorMode("new");
+    setTimelineOpen(false);
     setSelectedMemoryId(null);
     setJournalMessage("");
     setJournalMenuOpen(false);
@@ -290,6 +292,7 @@ function App() {
   }
 
   function openJournal(memory: Memory) {
+    setTimelineOpen(false);
     setSelectedMemoryId(memory.id);
     setEditorMode("view");
     setJournalMessage("");
@@ -299,6 +302,7 @@ function App() {
 
   function startEditing() {
     if (!selectedMemory) return;
+    setTimelineOpen(false);
     setJournalTitle(selectedMemory.title ?? "");
     setJournalContent(selectedMemory.content);
     setJournalDate(toDateInputValue(selectedMemory.memory_date));
@@ -666,6 +670,7 @@ function App() {
         </div>
 
         <div className="sidebar-bottom">
+          <button className={`sidebar-tool-button ${timelineOpen ? "timeline-nav-active" : ""}`} onClick={() => { setTimelineOpen(true); setJournalMenuOpen(false); setAccountMenuOpen(false); }}><span>◷</span><span>Memory Timeline</span></button>
           <button className="sidebar-tool-button" onClick={takeMeBack}><span>✦</span><span>Take me back</span></button>
           <button className="sidebar-tool-button" onClick={openPocketNote}><span>♡</span><span>Pocket Note</span></button>
           <p className="sidebar-principle">Past Me reminds.<br />It never decides.</p>
@@ -695,7 +700,50 @@ function App() {
         </header>
 
         <div className="workspace-stage" key={`${editorMode}-${selectedMemoryId ?? "new"}`}>
-          {editorMode === "new" && (
+          {timelineOpen && (
+            <section className="memory-timeline-page" aria-label="Memory Timeline">
+              <p className="eyebrow">YOUR STORY, THROUGH TIME</p>
+              <div className="timeline-heading">
+                <div>
+                  <h1>Memory Timeline</h1>
+                  <p>Every chapter is part of your story. Revisit them at your own pace.</p>
+                </div>
+                <button className="secondary-button" onClick={() => startNewJournal()}>＋ New Journal</button>
+              </div>
+              {memories.length === 0 ? (
+                <div className="timeline-empty">
+                  <span>✦</span>
+                  <h2>Your timeline starts with one memory.</h2>
+                  <p>Write your first journal to begin collecting your moments.</p>
+                  <button className="primary-button" onClick={() => startNewJournal()}>Write a journal</button>
+                </div>
+              ) : groupedMemories.length === 0 ? (
+                <p className="timeline-empty-message">No journals match your search.</p>
+              ) : (
+                <div className="timeline-groups">
+                  {groupedMemories.map((group) => (
+                    <section className="timeline-group" key={group.key}>
+                      <h2 className="timeline-month">{group.label}</h2>
+                      <div className="timeline-entries">
+                        {group.memories.map((memory) => (
+                          <button key={memory.id} className="timeline-entry" onClick={() => openJournal(memory)}>
+                            <span className="timeline-entry-date">{formatShortDate(memory.memory_date)}</span>
+                            <span className="timeline-entry-body">
+                              <strong>{getDisplayTitle(memory)}</strong>
+                              <span>{memory.content.trim().slice(0, 170)}{memory.content.trim().length > 170 ? "…" : ""}</span>
+                            </span>
+                            <span className="timeline-entry-arrow" aria-hidden="true">↗</span>
+                          </button>
+                        ))}
+                      </div>
+                    </section>
+                  ))}
+                </div>
+              )}
+            </section>
+          )}
+
+          {!timelineOpen && editorMode === "new" && (
             <section className="journal-compose-page">
               <div className="compose-topline">
                 <input
@@ -750,7 +798,7 @@ function App() {
             </section>
           )}
 
-          {editorMode === "view" && selectedMemory && (
+          {!timelineOpen && editorMode === "view" && selectedMemory && (
             <article className="journal-reading-page">
               <div className="reading-topline">
                 <p>{formatDate(selectedMemory.memory_date)}</p>
@@ -791,7 +839,7 @@ function App() {
             </article>
           )}
 
-          {editorMode === "edit" && selectedMemory && (
+          {!timelineOpen && editorMode === "edit" && selectedMemory && (
             <section className="journal-compose-page edit-compose-page">
               <div className="compose-topline">
                 <input
@@ -833,7 +881,7 @@ function App() {
             </section>
           )}
 
-          {editorMode === "view" && !selectedMemory && (
+          {!timelineOpen && editorMode === "view" && !selectedMemory && (
             <div className="workspace-empty">
               <span>✦</span>
               <h2>Your story starts here.</h2>

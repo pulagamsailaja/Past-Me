@@ -552,3 +552,37 @@ input,textarea{color:inherit}
   font-weight: 500;
   cursor: default;
 }
+
+/* MEMORY TIMELINE */
+.timeline-nav-active{background:rgba(255,250,243,.8);color:#44372d}
+.memory-timeline-page{width:min(760px,calc(100% - 64px));margin:0 auto;padding:44px 0 85px}
+.timeline-heading{display:flex;justify-content:space-between;align-items:flex-start;gap:22px;margin-bottom:42px}
+.timeline-heading h1{margin:0 0 12px;font:500 clamp(35px,4vw,48px)/1.15 Georgia,"Times New Roman",serif;letter-spacing:-1px;color:#392e27}
+.timeline-heading p{margin:0;max-width:440px;color:#847568;font-size:13px;line-height:1.7}
+.timeline-heading button{flex-shrink:0}
+.timeline-groups{display:grid;gap:36px}
+.timeline-group{position:relative;padding-left:27px;border-left:1px solid #d8c8b5}
+.timeline-month{position:relative;margin:0 0 17px;color:#937657;font-size:11px;letter-spacing:1.5px;text-transform:uppercase}
+.timeline-month:before{content:"";position:absolute;left:-33px;top:3px;width:10px;height:10px;border-radius:50%;background:#aa8966;border:3px solid #f8f5ef}
+.timeline-entries{display:grid;gap:12px}
+.timeline-entry{width:100%;display:flex;align-items:flex-start;gap:18px;padding:20px;border:1px solid #e3d8cb;border-radius:16px;background:rgba(255,253,248,.7);color:#473a30;text-align:left;transition:background .18s,transform .18s,border-color .18s}
+.timeline-entry:hover{background:#fffaf3;border-color:#ccb69f;transform:translateY(-2px)}
+.timeline-entry:focus-visible{outline:3px solid #a88b6c;outline-offset:3px}
+.timeline-entry-date{flex:0 0 60px;color:#9b8065;font-size:11px;line-height:1.6}
+.timeline-entry-body{min-width:0;flex:1;display:grid;gap:7px}
+.timeline-entry-body strong{font:500 20px/1.25 Georgia,"Times New Roman",serif;overflow-wrap:anywhere}
+.timeline-entry-body > span {
+  display: block;
+  max-height: 61.2px;
+  overflow: hidden;
+  color: #817366;
+  font-size: 12px;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}.timeline-entry-arrow{color:#a48b72}
+.timeline-empty{text-align:center;padding:60px 15px;color:#78695b}
+.timeline-empty>span{font-size:26px;color:#a48869}
+.timeline-empty h2{font:500 26px Georgia,"Times New Roman",serif;color:#45372d}
+.timeline-empty p,.timeline-empty-message{font-size:13px;color:#88796a;line-height:1.7}
+@media(max-width:700px){.memory-timeline-page{width:calc(100% - 30px);padding:34px 0 65px}.timeline-heading{flex-direction:column;margin-bottom:30px}.timeline-entry{gap:11px;padding:15px}.timeline-entry-date{flex-basis:47px;font-size:10px}.timeline-entry-body strong{font-size:18px}.timeline-group{padding-left:19px}.timeline-month:before{left:-25px}}
