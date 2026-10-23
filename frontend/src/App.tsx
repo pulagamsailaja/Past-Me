@@ -32,6 +32,10 @@ type MemoryGroup = {
 const API_URL = "http://127.0.0.1:8000";
 const DRAFT_KEY = "past-me-journal-draft";
 
+function getDraftKey(userId: string) {
+  return `${DRAFT_KEY}:${userId}`;
+}
+
 const WRITING_PROMPTS = [
   "What happened today that you don't want to forget?",
   "What are you hoping will be different a month from now?",
@@ -69,6 +73,7 @@ function App() {
   const [editorMode, setEditorMode] = useState<EditorMode>("new");
   const [journalTitle, setJournalTitle] = useState("");
   const [journalContent, setJournalContent] = useState("");
+  const [draftReady, setDraftReady] = useState(false);
   const [journalDate, setJournalDate] = useState(getTodayInputDate());
   const [journalLoading, setJournalLoading] = useState(false);
   const [journalMessage, setJournalMessage] = useState("");
@@ -131,15 +136,22 @@ function App() {
   }, []);
 
   useEffect(() => {
-    if (session) {
-      fetchMemories();
-      startNewJournal();
-    } else {
-      setMemories([]);
-      setSelectedMemoryId(null);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [session]);
+  setDraftReady(false);
+
+  if (session) {
+    fetchMemories();
+    startNewJournal(session.user.id);
+  } else {
+    setMemories([]);
+    setSelectedMemoryId(null);
+    setEditorMode("new");
+    setJournalTitle("");
+    setJournalContent("");
+    setJournalDate(getTodayInputDate());
+  }
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, [session?.user.id]);
 
   useEffect(() => {
     function handleOutsideClick(event: MouseEvent) {
@@ -156,24 +168,35 @@ function App() {
     return () => document.removeEventListener("mousedown", handleOutsideClick);
   }, []);
 
-  useEffect(() => {
-    if (editorMode !== "new") return;
+ useEffect(() => {
+  if (!session?.user.id || !draftReady || editorMode !== "new") {
+    return;
+  }
 
-    const hasDraft = journalTitle.trim() || journalContent.trim();
-    if (!hasDraft) {
-      localStorage.removeItem(DRAFT_KEY);
-      return;
-    }
+  const key = getDraftKey(session.user.id);
+  const hasDraft = journalTitle.trim() || journalContent.trim();
 
-    localStorage.setItem(
-      DRAFT_KEY,
-      JSON.stringify({
-        title: journalTitle,
-        content: journalContent,
-        date: journalDate || getTodayInputDate(),
-      })
-    );
-  }, [editorMode, journalTitle, journalContent, journalDate]);
+  if (!hasDraft) {
+    localStorage.removeItem(key);
+    return;
+  }
+
+  localStorage.setItem(
+    key,
+    JSON.stringify({
+      title: journalTitle,
+      content: journalContent,
+      date: journalDate || getTodayInputDate(),
+    })
+  );
+}, [
+  session?.user.id,
+  draftReady,
+  editorMode,
+  journalTitle,
+  journalContent,
+  journalDate,
+]);
 
   useEffect(() => {
     if (!journalMessage) return;
@@ -231,29 +254,39 @@ function App() {
     }
   }
 
-  function startNewJournal() {
+  function startNewJournal(userId?: string) {
+    const id = userId ?? session?.user.id;
+
+    setDraftReady(false);
     setEditorMode("new");
     setSelectedMemoryId(null);
     setJournalMessage("");
     setJournalMenuOpen(false);
 
-    const storedDraft = localStorage.getItem(DRAFT_KEY);
-    if (storedDraft) {
-      try {
-        const draft = JSON.parse(storedDraft);
-        setJournalTitle(draft.title ?? "");
-        setJournalContent(draft.content ?? "");
-        setJournalDate(draft.date ?? getTodayInputDate());
-        return;
-      } catch {
-        localStorage.removeItem(DRAFT_KEY);
+    let title = "";
+    let content = "";
+    let date = getTodayInputDate();
+
+    if (id) {
+      const key = getDraftKey(id);
+      const storedDraft = localStorage.getItem(key);
+      if (storedDraft) {
+        try {
+          const draft = JSON.parse(storedDraft);
+          title = typeof draft.title === "string" ? draft.title : "";
+          content = typeof draft.content === "string" ? draft.content : "";
+          date = typeof draft.date === "string" ? draft.date : getTodayInputDate();
+        } catch {
+          localStorage.removeItem(key);
+        }
       }
     }
 
-    setJournalTitle("");
-    setJournalContent("");
-    setJournalDate(getTodayInputDate());
+    setJournalTitle(title);
+    setJournalContent(content);
+    setJournalDate(date);
     setPromptIndex(Math.floor(Math.random() * WRITING_PROMPTS.length));
+    setDraftReady(true);
   }
 
   function openJournal(memory: Memory) {
@@ -312,7 +345,8 @@ function App() {
       const data = await response.json();
       if (!response.ok) throw new Error(data.detail || "Could not save journal.");
 
-      localStorage.removeItem(DRAFT_KEY);
+      localStorage.removeItem(getDraftKey(session.user.id));
+      setDraftReady(false);
       const createdId = data.memory.id;
       setNewMemoryId(createdId);
       await fetchMemories(createdId);
@@ -559,7 +593,7 @@ function App() {
         <div className="sidebar-top">
           <div className="sidebar-brand"><span className="brand-sparkle">✦</span><span>PAST ME</span></div>
 
-          <button className="new-journal-button" onClick={startNewJournal}>
+          <button className="new-journal-button" onClick={() => startNewJournal()}>
             <span>＋</span><span>New Journal</span>
           </button>
 
@@ -804,7 +838,7 @@ function App() {
               <span>✦</span>
               <h2>Your story starts here.</h2>
               <p>Create your first journal and give your future self something to come back to.</p>
-              <button className="primary-button" onClick={startNewJournal}>New Journal</button>
+              <button className="primary-button" onClick={() => startNewJournal()}>New Journal</button>
             </div>
           )}
         </div>
