@@ -147,6 +147,34 @@ function App() {
     setCalendarSelectedDay(null);
   }
 
+  // Journal Insights use the same journal dates as the calendar.
+  const journalInsights = useMemo(() => {
+    const keys = Array.from(memoriesByWrittenDay.keys()).sort();
+    const monthCounts = new Map<string, number>();
+    for (const memory of memories) {
+      const day = toDateInputValue(memory.memory_date);
+      const monthKey = day.slice(0, 7);
+      monthCounts.set(monthKey, (monthCounts.get(monthKey) ?? 0) + 1);
+    }
+    const today = new Date();
+    const recentMonths = Array.from({ length: 6 }, (_, index) => {
+      const date = new Date(today.getFullYear(), today.getMonth() - 5 + index, 1);
+      const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+      return {
+        key,
+        label: new Intl.DateTimeFormat("en-US", { month: "short" }).format(date),
+        entries: monthCounts.get(key) ?? 0,
+      };
+    });
+    const maxEntries = Math.max(1, ...recentMonths.map((month) => month.entries));
+    return {
+      firstDay: keys[0] ?? null,
+      monthsWithMemories: monthCounts.size,
+      recentMonths,
+      maxEntries,
+    };
+  }, [memories, memoriesByWrittenDay]);
+
   const groupedMemories = useMemo(
     () => groupMemoriesByMonth(filteredMemories),
     [filteredMemories]
@@ -783,6 +811,47 @@ function App() {
                 <div className="calendar-stat"><span>Total journal entries</span><strong>{memories.length}</strong></div>
                 <div className="calendar-stat"><span>Total journal dates</span><strong>{memoriesByWrittenDay.size}</strong></div>
               </div>
+
+              <section className="journal-insights" aria-label="Journal Insights">
+                <div className="insights-heading">
+                  <div>
+                    <p className="eyebrow">A LOOK BACK</p>
+                    <h2>Your Journal Insights</h2>
+                    <p>Every memory you chose to keep is part of your story.</p>
+                  </div>
+                </div>
+                <div className="insights-highlights">
+                  <div className="insights-highlight">
+                    <span>Months with memories</span>
+                    <strong>{journalInsights.monthsWithMemories}</strong>
+                  </div>
+                  <div className="insights-highlight">
+                    <span>First journal date</span>
+                    <strong className="insights-first-date">{journalInsights.firstDay
+                      ? new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric" }).format(new Date(`${journalInsights.firstDay}T12:00:00`))
+                      : "Not yet"}</strong>
+                  </div>
+                </div>
+                <div className="insights-chart">
+                  <h3>Entries over the last six months</h3>
+                  <div className="insights-bars">
+                    {journalInsights.recentMonths.map((month) => (
+                      <div className="insights-bar-column" key={month.key}>
+                        <span className="insights-bar-count">{month.entries}</span>
+                        <div className="insights-bar-track">
+                          <div
+                            className="insights-bar-fill"
+                            style={{ height: `${(month.entries / journalInsights.maxEntries) * 100}%` }}
+                            aria-label={`${month.entries} entries in ${month.label}`}
+                          />
+                        </div>
+                        <span className="insights-bar-label">{month.label}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="insights-note">Based on journal dates. No streaks, no pressure.</p>
+                </div>
+              </section>
 
               {calendarSelectedDay && (
                 <section className="calendar-day-details" aria-live="polite">

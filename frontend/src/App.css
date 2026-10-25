@@ -591,3 +591,23 @@ input,textarea{color:inherit}
 .calendar-entry small{color:#867667;font-size:12px;line-height:1.5;overflow-wrap:anywhere}
 .calendar-day:focus-visible,.calendar-arrow:focus-visible,.calendar-entry:focus-visible{outline:3px solid #ad8d69;outline-offset:2px}
 @media(max-width:700px){.memory-timeline-page{width:calc(100% - 30px);padding:34px 0 65px}.timeline-heading{flex-direction:column}.writing-calendar{padding:12px}.calendar-grid{gap:2px}.calendar-day,.calendar-blank{min-height:48px}.calendar-day{font-size:12px}.calendar-weekday{font-size:9px}.calendar-header h2{font-size:21px}.calendar-stats{gap:6px}.calendar-stat{padding:10px}.calendar-stat strong{font-size:25px}.calendar-stat span{font-size:10px}}
+
+/* PHASE 6 — JOURNAL INSIGHTS */
+.journal-insights{margin-top:30px;padding:26px;border:1px solid #e2d5c6;border-radius:20px;background:rgba(255,253,248,.72)}
+.insights-heading h2{margin:0 0 8px;color:#44372d;font:500 28px Georgia,"Times New Roman",serif}
+.insights-heading p:last-child{margin:0;color:#847568;font-size:13px;line-height:1.6}
+.insights-highlights{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:22px 0}
+.insights-highlight{display:grid;gap:8px;padding:17px;border-radius:14px;background:#f2e9de}
+.insights-highlight span{color:#857363;font-size:11px}
+.insights-highlight strong{color:#46382d;font:500 29px Georgia,"Times New Roman",serif}
+.insights-highlight .insights-first-date{font-size:23px}
+.insights-chart{padding:20px;border:1px solid #e9ded1;border-radius:15px;background:#fffaf4}
+.insights-chart h3{margin:0 0 20px;color:#4b3d31;font:500 19px Georgia,"Times New Roman",serif}
+.insights-bars{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px;align-items:end}
+.insights-bar-column{min-width:0;display:flex;flex-direction:column;align-items:center;gap:7px}
+.insights-bar-count{color:#7e6b5b;font-size:11px}
+.insights-bar-track{width:min(100%,48px);height:118px;display:flex;align-items:flex-end;border-radius:8px;background:#f1e7db;overflow:hidden}
+.insights-bar-fill{width:100%;min-height:0;background:#a78969;border-radius:8px 8px 0 0;transition:height .2s ease}
+.insights-bar-label{color:#857363;font-size:11px}
+.insights-note{margin:18px 0 0;color:#9a8b7d;font-size:11px;text-align:center}
+@media(max-width:700px){.journal-insights{padding:15px}.insights-highlights{gap:8px}.insights-highlight{padding:12px}.insights-highlight strong{font-size:24px}.insights-highlight .insights-first-date{font-size:17px}.insights-chart{padding:12px}.insights-bars{gap:5px}.insights-bar-track{height:95px}.insights-bar-label{font-size:10px}}
