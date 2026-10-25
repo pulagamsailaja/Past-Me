@@ -72,6 +72,8 @@ function App() {
   const [selectedMemoryId, setSelectedMemoryId] = useState<string | null>(null);
   const [editorMode, setEditorMode] = useState<EditorMode>("new");
   const [timelineOpen, setTimelineOpen] = useState(false);
+  const [calendarMonth, setCalendarMonth] = useState(() => new Date(new Date().getFullYear(), new Date().getMonth(), 1));
+  const [calendarSelectedDay, setCalendarSelectedDay] = useState<string | null>(null);
   const [journalTitle, setJournalTitle] = useState("");
   const [journalContent, setJournalContent] = useState("");
   const [draftReady, setDraftReady] = useState(false);
@@ -115,6 +117,35 @@ function App() {
       return title.includes(query) || memory.content.toLowerCase().includes(query);
     });
   }, [memories, searchQuery]);
+
+  // Calendar ticks follow the journal date, matching the sidebar and journal editor.
+  const memoriesByWrittenDay = useMemo(() => {
+    const byDay = new Map<string, Memory[]>();
+    for (const memory of memories) {
+      const journalDate = new Date(memory.memory_date);
+      if (Number.isNaN(journalDate.getTime())) continue;
+      const key = toDateInputValue(memory.memory_date);
+      const existing = byDay.get(key) ?? [];
+      existing.push(memory);
+      byDay.set(key, existing);
+    }
+    return byDay;
+  }, [memories]);
+
+  const calendarYear = calendarMonth.getFullYear();
+  const calendarMonthIndex = calendarMonth.getMonth();
+  const calendarPrefix = `${calendarYear}-${String(calendarMonthIndex + 1).padStart(2, "0")}-`;
+  const calendarWrittenDays = Array.from(memoriesByWrittenDay.keys()).filter((day) => day.startsWith(calendarPrefix));
+  const calendarSelectedEntries = calendarSelectedDay ? (memoriesByWrittenDay.get(calendarSelectedDay) ?? []) : [];
+  const calendarFirstWeekday = new Date(calendarYear, calendarMonthIndex, 1).getDay();
+  const calendarDaysInMonth = new Date(calendarYear, calendarMonthIndex + 1, 0).getDate();
+  const currentMonth = new Date();
+  const atCurrentMonth = calendarYear === currentMonth.getFullYear() && calendarMonthIndex === currentMonth.getMonth();
+
+  function changeCalendarMonth(offset: number) {
+    setCalendarMonth((current) => new Date(current.getFullYear(), current.getMonth() + offset, 1));
+    setCalendarSelectedDay(null);
+  }
 
   const groupedMemories = useMemo(
     () => groupMemoriesByMonth(filteredMemories),
@@ -702,43 +733,73 @@ function App() {
         <div className="workspace-stage" key={`${editorMode}-${selectedMemoryId ?? "new"}`}>
           {timelineOpen && (
             <section className="memory-timeline-page" aria-label="Memory Timeline">
-              <p className="eyebrow">YOUR STORY, THROUGH TIME</p>
+              <p className="eyebrow">YOUR WRITING JOURNEY</p>
               <div className="timeline-heading">
                 <div>
                   <h1>Memory Timeline</h1>
-                  <p>Every chapter is part of your story. Revisit them at your own pace.</p>
+                  <p>A little check for every day you showed up to write. Every entry matters.</p>
                 </div>
                 <button className="secondary-button" onClick={() => startNewJournal()}>＋ New Journal</button>
               </div>
-              {memories.length === 0 ? (
-                <div className="timeline-empty">
-                  <span>✦</span>
-                  <h2>Your timeline starts with one memory.</h2>
-                  <p>Write your first journal to begin collecting your moments.</p>
-                  <button className="primary-button" onClick={() => startNewJournal()}>Write a journal</button>
+
+              <div className="writing-calendar">
+                <div className="calendar-header">
+                  <button type="button" className="calendar-arrow" onClick={() => changeCalendarMonth(-1)} aria-label="Previous month">‹</button>
+                  <h2>{new Intl.DateTimeFormat("en-US", { month: "long", year: "numeric" }).format(calendarMonth)}</h2>
+                  <button type="button" className="calendar-arrow" onClick={() => changeCalendarMonth(1)} disabled={atCurrentMonth} aria-label="Next month">›</button>
                 </div>
-              ) : groupedMemories.length === 0 ? (
-                <p className="timeline-empty-message">No journals match your search.</p>
-              ) : (
-                <div className="timeline-groups">
-                  {groupedMemories.map((group) => (
-                    <section className="timeline-group" key={group.key}>
-                      <h2 className="timeline-month">{group.label}</h2>
-                      <div className="timeline-entries">
-                        {group.memories.map((memory) => (
-                          <button key={memory.id} className="timeline-entry" onClick={() => openJournal(memory)}>
-                            <span className="timeline-entry-date">{formatShortDate(memory.memory_date)}</span>
-                            <span className="timeline-entry-body">
-                              <strong>{getDisplayTitle(memory)}</strong>
-                              <span>{memory.content.trim().slice(0, 170)}{memory.content.trim().length > 170 ? "…" : ""}</span>
-                            </span>
-                            <span className="timeline-entry-arrow" aria-hidden="true">↗</span>
-                          </button>
-                        ))}
-                      </div>
-                    </section>
+                <div className="calendar-grid" role="group" aria-label="Journal writing days">
+                  {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
+                    <div className="calendar-weekday" key={day}>{day}</div>
                   ))}
+                  {Array.from({ length: calendarFirstWeekday }, (_, index) => (
+                    <div className="calendar-blank" key={`blank-${index}`} aria-hidden="true" />
+                  ))}
+                  {Array.from({ length: calendarDaysInMonth }, (_, index) => {
+                    const day = index + 1;
+                    const dateKey = `${calendarPrefix}${String(day).padStart(2, "0")}`;
+                    const entryCount = memoriesByWrittenDay.get(dateKey)?.length ?? 0;
+                    const isToday = dateKey === getTodayInputDate();
+                    return (
+                      <button
+                        key={dateKey}
+                        type="button"
+                        className={`calendar-day${entryCount ? " has-entry" : ""}${calendarSelectedDay === dateKey ? " selected" : ""}${isToday ? " today" : ""}`}
+                        onClick={() => setCalendarSelectedDay(dateKey)}
+                        aria-pressed={calendarSelectedDay === dateKey}
+                        aria-label={`${new Intl.DateTimeFormat("en-US", { month: "long" }).format(calendarMonth)} ${day}, ${calendarYear}: ${entryCount} ${entryCount === 1 ? "journal" : "journals"} written`}
+                      >
+                        <span>{day}</span>
+                        <span className="calendar-day-mark" aria-hidden="true">{entryCount ? "✓" : ""}</span>
+                      </button>
+                    );
+                  })}
                 </div>
+                <p className="calendar-legend"><span aria-hidden="true">✓</span> A journal dated this day</p>
+              </div>
+
+              <div className="calendar-stats">
+                <div className="calendar-stat"><span>Journal dates this month</span><strong>{calendarWrittenDays.length}</strong></div>
+                <div className="calendar-stat"><span>Total journal entries</span><strong>{memories.length}</strong></div>
+                <div className="calendar-stat"><span>Total journal dates</span><strong>{memoriesByWrittenDay.size}</strong></div>
+              </div>
+
+              {calendarSelectedDay && (
+                <section className="calendar-day-details" aria-live="polite">
+                  <h3>{new Intl.DateTimeFormat("en-US", { dateStyle: "long" }).format(new Date(`${calendarSelectedDay}T12:00:00`))}</h3>
+                  {calendarSelectedEntries.length ? (
+                    <div className="calendar-entry-list">
+                      {calendarSelectedEntries.map((memory) => (
+                        <button type="button" className="calendar-entry" key={memory.id} onClick={() => openJournal(memory)}>
+                          <span><strong>{getDisplayTitle(memory)}</strong><small>{memory.content.trim().slice(0, 110)}{memory.content.trim().length > 110 ? "…" : ""}</small></span>
+                          <span aria-hidden="true">↗</span>
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <p>No journals are dated this day. That's okay — every day is different.</p>
+                  )}
+                </section>
               )}
             </section>
           )}
