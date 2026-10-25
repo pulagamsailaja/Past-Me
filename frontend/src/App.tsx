@@ -32,6 +32,10 @@ type MemoryGroup = {
 const API_URL = "http://127.0.0.1:8000";
 const DRAFT_KEY = "past-me-journal-draft";
 
+function getDraftKey(userId: string) {
+  return `${DRAFT_KEY}:${userId}`;
+}
+
 const WRITING_PROMPTS = [
   "What happened today that you don't want to forget?",
   "What are you hoping will be different a month from now?",
@@ -67,8 +71,12 @@ function App() {
   const [memories, setMemories] = useState<Memory[]>([]);
   const [selectedMemoryId, setSelectedMemoryId] = useState<string | null>(null);
   const [editorMode, setEditorMode] = useState<EditorMode>("new");
+  const [timelineOpen, setTimelineOpen] = useState(false);
+  const [calendarMonth, setCalendarMonth] = useState(() => new Date(new Date().getFullYear(), new Date().getMonth(), 1));
+  const [calendarSelectedDay, setCalendarSelectedDay] = useState<string | null>(null);
   const [journalTitle, setJournalTitle] = useState("");
   const [journalContent, setJournalContent] = useState("");
+  const [draftReady, setDraftReady] = useState(false);
   const [journalDate, setJournalDate] = useState(getTodayInputDate());
   const [journalLoading, setJournalLoading] = useState(false);
   const [journalMessage, setJournalMessage] = useState("");
@@ -110,6 +118,35 @@ function App() {
     });
   }, [memories, searchQuery]);
 
+  // Calendar ticks follow the journal date, matching the sidebar and journal editor.
+  const memoriesByWrittenDay = useMemo(() => {
+    const byDay = new Map<string, Memory[]>();
+    for (const memory of memories) {
+      const journalDate = new Date(memory.memory_date);
+      if (Number.isNaN(journalDate.getTime())) continue;
+      const key = toDateInputValue(memory.memory_date);
+      const existing = byDay.get(key) ?? [];
+      existing.push(memory);
+      byDay.set(key, existing);
+    }
+    return byDay;
+  }, [memories]);
+
+  const calendarYear = calendarMonth.getFullYear();
+  const calendarMonthIndex = calendarMonth.getMonth();
+  const calendarPrefix = `${calendarYear}-${String(calendarMonthIndex + 1).padStart(2, "0")}-`;
+  const calendarWrittenDays = Array.from(memoriesByWrittenDay.keys()).filter((day) => day.startsWith(calendarPrefix));
+  const calendarSelectedEntries = calendarSelectedDay ? (memoriesByWrittenDay.get(calendarSelectedDay) ?? []) : [];
+  const calendarFirstWeekday = new Date(calendarYear, calendarMonthIndex, 1).getDay();
+  const calendarDaysInMonth = new Date(calendarYear, calendarMonthIndex + 1, 0).getDate();
+  const currentMonth = new Date();
+  const atCurrentMonth = calendarYear === currentMonth.getFullYear() && calendarMonthIndex === currentMonth.getMonth();
+
+  function changeCalendarMonth(offset: number) {
+    setCalendarMonth((current) => new Date(current.getFullYear(), current.getMonth() + offset, 1));
+    setCalendarSelectedDay(null);
+  }
+
   const groupedMemories = useMemo(
     () => groupMemoriesByMonth(filteredMemories),
     [filteredMemories]
@@ -131,15 +168,22 @@ function App() {
   }, []);
 
   useEffect(() => {
-    if (session) {
-      fetchMemories();
-      startNewJournal();
-    } else {
-      setMemories([]);
-      setSelectedMemoryId(null);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [session]);
+  setDraftReady(false);
+
+  if (session) {
+    fetchMemories();
+    startNewJournal(session.user.id);
+  } else {
+    setMemories([]);
+    setSelectedMemoryId(null);
+    setEditorMode("new");
+    setJournalTitle("");
+    setJournalContent("");
+    setJournalDate(getTodayInputDate());
+  }
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, [session?.user.id]);
 
   useEffect(() => {
     function handleOutsideClick(event: MouseEvent) {
@@ -156,24 +200,35 @@ function App() {
     return () => document.removeEventListener("mousedown", handleOutsideClick);
   }, []);
 
-  useEffect(() => {
-    if (editorMode !== "new") return;
+ useEffect(() => {
+  if (!session?.user.id || !draftReady || editorMode !== "new") {
+    return;
+  }
 
-    const hasDraft = journalTitle.trim() || journalContent.trim();
-    if (!hasDraft) {
-      localStorage.removeItem(DRAFT_KEY);
-      return;
-    }
+  const key = getDraftKey(session.user.id);
+  const hasDraft = journalTitle.trim() || journalContent.trim();
 
-    localStorage.setItem(
-      DRAFT_KEY,
-      JSON.stringify({
-        title: journalTitle,
-        content: journalContent,
-        date: journalDate || getTodayInputDate(),
-      })
-    );
-  }, [editorMode, journalTitle, journalContent, journalDate]);
+  if (!hasDraft) {
+    localStorage.removeItem(key);
+    return;
+  }
+
+  localStorage.setItem(
+    key,
+    JSON.stringify({
+      title: journalTitle,
+      content: journalContent,
+      date: journalDate || getTodayInputDate(),
+    })
+  );
+}, [
+  session?.user.id,
+  draftReady,
+  editorMode,
+  journalTitle,
+  journalContent,
+  journalDate,
+]);
 
   useEffect(() => {
     if (!journalMessage) return;
@@ -231,32 +286,44 @@ function App() {
     }
   }
 
-  function startNewJournal() {
+  function startNewJournal(userId?: string) {
+    const id = userId ?? session?.user.id;
+
+    setDraftReady(false);
     setEditorMode("new");
+    setTimelineOpen(false);
     setSelectedMemoryId(null);
     setJournalMessage("");
     setJournalMenuOpen(false);
 
-    const storedDraft = localStorage.getItem(DRAFT_KEY);
-    if (storedDraft) {
-      try {
-        const draft = JSON.parse(storedDraft);
-        setJournalTitle(draft.title ?? "");
-        setJournalContent(draft.content ?? "");
-        setJournalDate(draft.date ?? getTodayInputDate());
-        return;
-      } catch {
-        localStorage.removeItem(DRAFT_KEY);
+    let title = "";
+    let content = "";
+    let date = getTodayInputDate();
+
+    if (id) {
+      const key = getDraftKey(id);
+      const storedDraft = localStorage.getItem(key);
+      if (storedDraft) {
+        try {
+          const draft = JSON.parse(storedDraft);
+          title = typeof draft.title === "string" ? draft.title : "";
+          content = typeof draft.content === "string" ? draft.content : "";
+          date = typeof draft.date === "string" ? draft.date : getTodayInputDate();
+        } catch {
+          localStorage.removeItem(key);
+        }
       }
     }
 
-    setJournalTitle("");
-    setJournalContent("");
-    setJournalDate(getTodayInputDate());
+    setJournalTitle(title);
+    setJournalContent(content);
+    setJournalDate(date);
     setPromptIndex(Math.floor(Math.random() * WRITING_PROMPTS.length));
+    setDraftReady(true);
   }
 
   function openJournal(memory: Memory) {
+    setTimelineOpen(false);
     setSelectedMemoryId(memory.id);
     setEditorMode("view");
     setJournalMessage("");
@@ -266,6 +333,7 @@ function App() {
 
   function startEditing() {
     if (!selectedMemory) return;
+    setTimelineOpen(false);
     setJournalTitle(selectedMemory.title ?? "");
     setJournalContent(selectedMemory.content);
     setJournalDate(toDateInputValue(selectedMemory.memory_date));
@@ -312,7 +380,8 @@ function App() {
       const data = await response.json();
       if (!response.ok) throw new Error(data.detail || "Could not save journal.");
 
-      localStorage.removeItem(DRAFT_KEY);
+      localStorage.removeItem(getDraftKey(session.user.id));
+      setDraftReady(false);
       const createdId = data.memory.id;
       setNewMemoryId(createdId);
       await fetchMemories(createdId);
@@ -559,7 +628,7 @@ function App() {
         <div className="sidebar-top">
           <div className="sidebar-brand"><span className="brand-sparkle">✦</span><span>PAST ME</span></div>
 
-          <button className="new-journal-button" onClick={startNewJournal}>
+          <button className="new-journal-button" onClick={() => startNewJournal()}>
             <span>＋</span><span>New Journal</span>
           </button>
 
@@ -632,6 +701,7 @@ function App() {
         </div>
 
         <div className="sidebar-bottom">
+          <button className={`sidebar-tool-button ${timelineOpen ? "timeline-nav-active" : ""}`} onClick={() => { setTimelineOpen(true); setJournalMenuOpen(false); setAccountMenuOpen(false); }}><span>◷</span><span>Memory Timeline</span></button>
           <button className="sidebar-tool-button" onClick={takeMeBack}><span>✦</span><span>Take me back</span></button>
           <button className="sidebar-tool-button" onClick={openPocketNote}><span>♡</span><span>Pocket Note</span></button>
           <p className="sidebar-principle">Past Me reminds.<br />It never decides.</p>
@@ -661,7 +731,80 @@ function App() {
         </header>
 
         <div className="workspace-stage" key={`${editorMode}-${selectedMemoryId ?? "new"}`}>
-          {editorMode === "new" && (
+          {timelineOpen && (
+            <section className="memory-timeline-page" aria-label="Memory Timeline">
+              <p className="eyebrow">YOUR WRITING JOURNEY</p>
+              <div className="timeline-heading">
+                <div>
+                  <h1>Memory Timeline</h1>
+                  <p>A little check for every day you showed up to write. Every entry matters.</p>
+                </div>
+                <button className="secondary-button" onClick={() => startNewJournal()}>＋ New Journal</button>
+              </div>
+
+              <div className="writing-calendar">
+                <div className="calendar-header">
+                  <button type="button" className="calendar-arrow" onClick={() => changeCalendarMonth(-1)} aria-label="Previous month">‹</button>
+                  <h2>{new Intl.DateTimeFormat("en-US", { month: "long", year: "numeric" }).format(calendarMonth)}</h2>
+                  <button type="button" className="calendar-arrow" onClick={() => changeCalendarMonth(1)} disabled={atCurrentMonth} aria-label="Next month">›</button>
+                </div>
+                <div className="calendar-grid" role="group" aria-label="Journal writing days">
+                  {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
+                    <div className="calendar-weekday" key={day}>{day}</div>
+                  ))}
+                  {Array.from({ length: calendarFirstWeekday }, (_, index) => (
+                    <div className="calendar-blank" key={`blank-${index}`} aria-hidden="true" />
+                  ))}
+                  {Array.from({ length: calendarDaysInMonth }, (_, index) => {
+                    const day = index + 1;
+                    const dateKey = `${calendarPrefix}${String(day).padStart(2, "0")}`;
+                    const entryCount = memoriesByWrittenDay.get(dateKey)?.length ?? 0;
+                    const isToday = dateKey === getTodayInputDate();
+                    return (
+                      <button
+                        key={dateKey}
+                        type="button"
+                        className={`calendar-day${entryCount ? " has-entry" : ""}${calendarSelectedDay === dateKey ? " selected" : ""}${isToday ? " today" : ""}`}
+                        onClick={() => setCalendarSelectedDay(dateKey)}
+                        aria-pressed={calendarSelectedDay === dateKey}
+                        aria-label={`${new Intl.DateTimeFormat("en-US", { month: "long" }).format(calendarMonth)} ${day}, ${calendarYear}: ${entryCount} ${entryCount === 1 ? "journal" : "journals"} written`}
+                      >
+                        <span>{day}</span>
+                        <span className="calendar-day-mark" aria-hidden="true">{entryCount ? "✓" : ""}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+                <p className="calendar-legend"><span aria-hidden="true">✓</span> A journal dated this day</p>
+              </div>
+
+              <div className="calendar-stats">
+                <div className="calendar-stat"><span>Journal dates this month</span><strong>{calendarWrittenDays.length}</strong></div>
+                <div className="calendar-stat"><span>Total journal entries</span><strong>{memories.length}</strong></div>
+                <div className="calendar-stat"><span>Total journal dates</span><strong>{memoriesByWrittenDay.size}</strong></div>
+              </div>
+
+              {calendarSelectedDay && (
+                <section className="calendar-day-details" aria-live="polite">
+                  <h3>{new Intl.DateTimeFormat("en-US", { dateStyle: "long" }).format(new Date(`${calendarSelectedDay}T12:00:00`))}</h3>
+                  {calendarSelectedEntries.length ? (
+                    <div className="calendar-entry-list">
+                      {calendarSelectedEntries.map((memory) => (
+                        <button type="button" className="calendar-entry" key={memory.id} onClick={() => openJournal(memory)}>
+                          <span><strong>{getDisplayTitle(memory)}</strong><small>{memory.content.trim().slice(0, 110)}{memory.content.trim().length > 110 ? "…" : ""}</small></span>
+                          <span aria-hidden="true">↗</span>
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <p>No journals are dated this day. That's okay — every day is different.</p>
+                  )}
+                </section>
+              )}
+            </section>
+          )}
+
+          {!timelineOpen && editorMode === "new" && (
             <section className="journal-compose-page">
               <div className="compose-topline">
                 <input
@@ -716,7 +859,7 @@ function App() {
             </section>
           )}
 
-          {editorMode === "view" && selectedMemory && (
+          {!timelineOpen && editorMode === "view" && selectedMemory && (
             <article className="journal-reading-page">
               <div className="reading-topline">
                 <p>{formatDate(selectedMemory.memory_date)}</p>
@@ -757,7 +900,7 @@ function App() {
             </article>
           )}
 
-          {editorMode === "edit" && selectedMemory && (
+          {!timelineOpen && editorMode === "edit" && selectedMemory && (
             <section className="journal-compose-page edit-compose-page">
               <div className="compose-topline">
                 <input
@@ -799,12 +942,12 @@ function App() {
             </section>
           )}
 
-          {editorMode === "view" && !selectedMemory && (
+          {!timelineOpen && editorMode === "view" && !selectedMemory && (
             <div className="workspace-empty">
               <span>✦</span>
               <h2>Your story starts here.</h2>
               <p>Create your first journal and give your future self something to come back to.</p>
-              <button className="primary-button" onClick={startNewJournal}>New Journal</button>
+              <button className="primary-button" onClick={() => startNewJournal()}>New Journal</button>
             </div>
           )}
         </div>

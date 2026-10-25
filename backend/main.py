@@ -595,21 +595,18 @@ def create_memory(
         # FIND MULTIPLE MEANINGFUL CONNECTIONS
         # --------------------------------------------------
 
-        connections = (
-            find_past_connections(
-                user_supabase=
-                    user_supabase,
-
-                user_id=
-                    str(user.id),
-
-                content=
-                    content,
-
-                memory_date=
-                    memory.memory_date,
+        # A successfully stored journal must not be reported as unsaved
+        # if the optional AI connection search fails.
+        try:
+            connections = find_past_connections(
+                user_supabase=user_supabase,
+                user_id=str(user.id),
+                content=content,
+                memory_date=memory.memory_date,
             )
-        )
+        except Exception as connection_error:
+            print("CONNECTION SEARCH ERROR:", connection_error)
+            connections = []
 
 
         return {
