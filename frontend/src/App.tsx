@@ -72,6 +72,7 @@ function App() {
   const [selectedMemoryId, setSelectedMemoryId] = useState<string | null>(null);
   const [editorMode, setEditorMode] = useState<EditorMode>("new");
   const [timelineOpen, setTimelineOpen] = useState(false);
+  const [mobileJournalsOpen, setMobileJournalsOpen] = useState(false);
   const [calendarMonth, setCalendarMonth] = useState(() => new Date(new Date().getFullYear(), new Date().getMonth(), 1));
   const [calendarSelectedDay, setCalendarSelectedDay] = useState<string | null>(null);
   const [journalTitle, setJournalTitle] = useState("");
@@ -320,6 +321,7 @@ function App() {
     setDraftReady(false);
     setEditorMode("new");
     setTimelineOpen(false);
+    setMobileJournalsOpen(false);
     setSelectedMemoryId(null);
     setJournalMessage("");
     setJournalMenuOpen(false);
@@ -352,6 +354,7 @@ function App() {
 
   function openJournal(memory: Memory) {
     setTimelineOpen(false);
+    setMobileJournalsOpen(false);
     setSelectedMemoryId(memory.id);
     setEditorMode("view");
     setJournalMessage("");
@@ -652,9 +655,19 @@ function App() {
 
   return (
     <main className="journal-app">
-      <aside className="journal-sidebar">
+      <aside className={`journal-sidebar${mobileJournalsOpen ? " mobile-journals-open" : ""}`}>
         <div className="sidebar-top">
           <div className="sidebar-brand"><span className="brand-sparkle">✦</span><span>PAST ME</span></div>
+          <button
+            type="button"
+            className="mobile-journals-toggle"
+            aria-expanded={mobileJournalsOpen}
+            aria-controls="journal-history"
+            onClick={() => setMobileJournalsOpen((current) => !current)}
+          >
+            <span>{mobileJournalsOpen ? "Hide past journals" : "Browse past journals"}</span>
+            <span aria-hidden="true">{mobileJournalsOpen ? "⌃" : "⌄"}</span>
+          </button>
 
           <button className="new-journal-button" onClick={() => startNewJournal()}>
             <span>＋</span><span>New Journal</span>
@@ -689,7 +702,7 @@ function App() {
           </div>
         </div>
 
-        <div className="sidebar-history">
+        <div className="sidebar-history" id="journal-history">
           {memories.length === 0 ? (
             <div className="sidebar-empty-state">
               <span>○</span>
@@ -729,7 +742,7 @@ function App() {
         </div>
 
         <div className="sidebar-bottom">
-          <button className={`sidebar-tool-button ${timelineOpen ? "timeline-nav-active" : ""}`} onClick={() => { setTimelineOpen(true); setJournalMenuOpen(false); setAccountMenuOpen(false); }}><span>◷</span><span>Memory Timeline</span></button>
+          <button className={`sidebar-tool-button ${timelineOpen ? "timeline-nav-active" : ""}`} onClick={() => { setTimelineOpen(true); setMobileJournalsOpen(false); setJournalMenuOpen(false); setAccountMenuOpen(false); }}><span>◷</span><span>Journaling Calendar</span></button>
           <button className="sidebar-tool-button" onClick={takeMeBack}><span>✦</span><span>Take me back</span></button>
           <button className="sidebar-tool-button" onClick={openPocketNote}><span>♡</span><span>Pocket Note</span></button>
           <p className="sidebar-principle">Past Me reminds.<br />It never decides.</p>
@@ -760,11 +773,11 @@ function App() {
 
         <div className="workspace-stage" key={`${editorMode}-${selectedMemoryId ?? "new"}`}>
           {timelineOpen && (
-            <section className="memory-timeline-page" aria-label="Memory Timeline">
+            <section className="memory-timeline-page" aria-label="Journaling Calendar">
               <p className="eyebrow">YOUR WRITING JOURNEY</p>
               <div className="timeline-heading">
                 <div>
-                  <h1>Memory Timeline</h1>
+                  <h1>Your Journaling Calendar</h1>
                   <p>A little check for every day you showed up to write. Every entry matters.</p>
                 </div>
                 <button className="secondary-button" onClick={() => startNewJournal()}>＋ New Journal</button>

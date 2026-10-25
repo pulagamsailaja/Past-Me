@@ -611,3 +611,73 @@ input,textarea{color:inherit}
 .insights-bar-label{color:#857363;font-size:11px}
 .insights-note{margin:18px 0 0;color:#9a8b7d;font-size:11px;text-align:center}
 @media(max-width:700px){.journal-insights{padding:15px}.insights-highlights{gap:8px}.insights-highlight{padding:12px}.insights-highlight strong{font-size:24px}.insights-highlight .insights-first-date{font-size:17px}.insights-chart{padding:12px}.insights-bars{gap:5px}.insights-bar-track{height:95px}.insights-bar-label{font-size:10px}}
+
+/* PHASE 8 — ACCESSIBLE MOBILE JOURNAL NAVIGATION */
+.mobile-journals-toggle{display:none}
+:where(button,input,textarea):focus-visible{outline:3px solid #a17f5c;outline-offset:3px}
+@media(max-width:700px){
+  .journal-sidebar{padding:12px 15px 10px}
+  .sidebar-top{display:grid;grid-template-columns:1fr auto;gap:9px;align-items:center}
+  .new-journal-button{grid-column:1;grid-row:1;min-height:44px}
+  .mobile-journals-toggle{display:flex;grid-column:2;grid-row:1;align-items:center;justify-content:center;gap:6px;min-height:44px;padding:8px 10px;border:1px solid #d1c1ae;border-radius:11px;background:#fffaf3;color:#5d4d3f;font-size:12px;font-weight:650}
+  .sidebar-search{display:none;grid-column:1/-1;margin-top:0}
+  .sidebar-history{display:none;max-height:210px;margin-top:10px}
+  .mobile-journals-open .sidebar-search{display:block}
+  .mobile-journals-open .sidebar-search.open{display:flex}
+  .mobile-journals-open .sidebar-history{display:block}
+  .sidebar-bottom{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;padding-top:10px;margin-top:10px}
+  .sidebar-tool-button{min-height:44px;padding:8px 4px;gap:5px;font-size:11px;justify-content:center;text-align:center}
+  .sidebar-tool-button span:first-child{flex-shrink:0}
+  .history-item{min-height:44px;align-items:center}
+  .history-title{font-size:12px}
+  .history-date,.sidebar-label{font-size:11px}
+  .calendar-arrow{width:44px;height:44px}
+  .calendar-day,.calendar-blank{min-height:46px}
+  .calendar-day{font-size:13px}
+  .calendar-weekday{font-size:11px}
+  .calendar-stat span,.insights-highlight span,.insights-bar-label,.insights-bar-count,.insights-note{font-size:11px}
+  .compose-hint,.compose-status{font-size:12px}
+  .compose-textarea{font-size:16px;line-height:1.75}
+  .another-prompt{min-height:32px;font-size:12px}
+  .journal-more-button,.modal-x{min-width:44px;min-height:44px}
+  .timeline-heading h1{font-size:32px}
+}
+@media(max-width:370px){
+  .sidebar-tool-button{flex-direction:column;font-size:10px}
+  .mobile-journals-toggle{font-size:11px;padding:8px}
+  .calendar-grid{gap:0}
+}
+@media(prefers-reduced-motion:reduce){
+  .workspace-stage,.pocket-note-modal,.past-popup,.account-menu{animation:none!important}
+  .primary-button,.secondary-button,.insights-bar-fill{transition:none!important}
+}
+/* =========================================
+   PHASE 8 — MOBILE SPACING IMPROVEMENTS
+   ========================================= */
+
+@media screen and (max-width: 700px) {
+  /* Keep mobile form controls comfortable to tap */
+  input,
+  textarea,
+  select {
+    font-size: 16px;
+  }
+
+  /* Keep the writing area usable on shorter screens */
+  textarea {
+    max-height: 45dvh;
+    overflow-y: auto;
+  }
+
+  /* Prevent horizontal overflow */
+  body,
+  #root {
+    max-width: 100%;
+  }
+}
+/* Phase 8 — reduce extra mobile workspace spacing */
+@media screen and (max-width: 700px) {
+  .journal-workspace {
+    padding-top: 0;
+  }
+}
