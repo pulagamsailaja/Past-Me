@@ -591,3 +591,93 @@ input,textarea{color:inherit}
 .calendar-entry small{color:#867667;font-size:12px;line-height:1.5;overflow-wrap:anywhere}
 .calendar-day:focus-visible,.calendar-arrow:focus-visible,.calendar-entry:focus-visible{outline:3px solid #ad8d69;outline-offset:2px}
 @media(max-width:700px){.memory-timeline-page{width:calc(100% - 30px);padding:34px 0 65px}.timeline-heading{flex-direction:column}.writing-calendar{padding:12px}.calendar-grid{gap:2px}.calendar-day,.calendar-blank{min-height:48px}.calendar-day{font-size:12px}.calendar-weekday{font-size:9px}.calendar-header h2{font-size:21px}.calendar-stats{gap:6px}.calendar-stat{padding:10px}.calendar-stat strong{font-size:25px}.calendar-stat span{font-size:10px}}
+
+/* PHASE 6 — JOURNAL INSIGHTS */
+.journal-insights{margin-top:30px;padding:26px;border:1px solid #e2d5c6;border-radius:20px;background:rgba(255,253,248,.72)}
+.insights-heading h2{margin:0 0 8px;color:#44372d;font:500 28px Georgia,"Times New Roman",serif}
+.insights-heading p:last-child{margin:0;color:#847568;font-size:13px;line-height:1.6}
+.insights-highlights{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:22px 0}
+.insights-highlight{display:grid;gap:8px;padding:17px;border-radius:14px;background:#f2e9de}
+.insights-highlight span{color:#857363;font-size:11px}
+.insights-highlight strong{color:#46382d;font:500 29px Georgia,"Times New Roman",serif}
+.insights-highlight .insights-first-date{font-size:23px}
+.insights-chart{padding:20px;border:1px solid #e9ded1;border-radius:15px;background:#fffaf4}
+.insights-chart h3{margin:0 0 20px;color:#4b3d31;font:500 19px Georgia,"Times New Roman",serif}
+.insights-bars{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px;align-items:end}
+.insights-bar-column{min-width:0;display:flex;flex-direction:column;align-items:center;gap:7px}
+.insights-bar-count{color:#7e6b5b;font-size:11px}
+.insights-bar-track{width:min(100%,48px);height:118px;display:flex;align-items:flex-end;border-radius:8px;background:#f1e7db;overflow:hidden}
+.insights-bar-fill{width:100%;min-height:0;background:#a78969;border-radius:8px 8px 0 0;transition:height .2s ease}
+.insights-bar-label{color:#857363;font-size:11px}
+.insights-note{margin:18px 0 0;color:#9a8b7d;font-size:11px;text-align:center}
+@media(max-width:700px){.journal-insights{padding:15px}.insights-highlights{gap:8px}.insights-highlight{padding:12px}.insights-highlight strong{font-size:24px}.insights-highlight .insights-first-date{font-size:17px}.insights-chart{padding:12px}.insights-bars{gap:5px}.insights-bar-track{height:95px}.insights-bar-label{font-size:10px}}
+
+/* PHASE 8 — ACCESSIBLE MOBILE JOURNAL NAVIGATION */
+.mobile-journals-toggle{display:none}
+:where(button,input,textarea):focus-visible{outline:3px solid #a17f5c;outline-offset:3px}
+@media(max-width:700px){
+  .journal-sidebar{padding:12px 15px 10px}
+  .sidebar-top{display:grid;grid-template-columns:1fr auto;gap:9px;align-items:center}
+  .new-journal-button{grid-column:1;grid-row:1;min-height:44px}
+  .mobile-journals-toggle{display:flex;grid-column:2;grid-row:1;align-items:center;justify-content:center;gap:6px;min-height:44px;padding:8px 10px;border:1px solid #d1c1ae;border-radius:11px;background:#fffaf3;color:#5d4d3f;font-size:12px;font-weight:650}
+  .sidebar-search{display:none;grid-column:1/-1;margin-top:0}
+  .sidebar-history{display:none;max-height:210px;margin-top:10px}
+  .mobile-journals-open .sidebar-search{display:block}
+  .mobile-journals-open .sidebar-search.open{display:flex}
+  .mobile-journals-open .sidebar-history{display:block}
+  .sidebar-bottom{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;padding-top:10px;margin-top:10px}
+  .sidebar-tool-button{min-height:44px;padding:8px 4px;gap:5px;font-size:11px;justify-content:center;text-align:center}
+  .sidebar-tool-button span:first-child{flex-shrink:0}
+  .history-item{min-height:44px;align-items:center}
+  .history-title{font-size:12px}
+  .history-date,.sidebar-label{font-size:11px}
+  .calendar-arrow{width:44px;height:44px}
+  .calendar-day,.calendar-blank{min-height:46px}
+  .calendar-day{font-size:13px}
+  .calendar-weekday{font-size:11px}
+  .calendar-stat span,.insights-highlight span,.insights-bar-label,.insights-bar-count,.insights-note{font-size:11px}
+  .compose-hint,.compose-status{font-size:12px}
+  .compose-textarea{font-size:16px;line-height:1.75}
+  .another-prompt{min-height:32px;font-size:12px}
+  .journal-more-button,.modal-x{min-width:44px;min-height:44px}
+  .timeline-heading h1{font-size:32px}
+}
+@media(max-width:370px){
+  .sidebar-tool-button{flex-direction:column;font-size:10px}
+  .mobile-journals-toggle{font-size:11px;padding:8px}
+  .calendar-grid{gap:0}
+}
+@media(prefers-reduced-motion:reduce){
+  .workspace-stage,.pocket-note-modal,.past-popup,.account-menu{animation:none!important}
+  .primary-button,.secondary-button,.insights-bar-fill{transition:none!important}
+}
+/* =========================================
+   PHASE 8 — MOBILE SPACING IMPROVEMENTS
+   ========================================= */
+
+@media screen and (max-width: 700px) {
+  /* Keep mobile form controls comfortable to tap */
+  input,
+  textarea,
+  select {
+    font-size: 16px;
+  }
+
+  /* Keep the writing area usable on shorter screens */
+  textarea {
+    max-height: 45dvh;
+    overflow-y: auto;
+  }
+
+  /* Prevent horizontal overflow */
+  body,
+  #root {
+    max-width: 100%;
+  }
+}
+/* Phase 8 — reduce extra mobile workspace spacing */
+@media screen and (max-width: 700px) {
+  .journal-workspace {
+    padding-top: 0;
+  }
+}

@@ -29,7 +29,8 @@ type MemoryGroup = {
   memories: Memory[];
 };
 
-const API_URL = "http://127.0.0.1:8000";
+const API_URL =
+  import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 const DRAFT_KEY = "past-me-journal-draft";
 
 function getDraftKey(userId: string) {
@@ -72,6 +73,7 @@ function App() {
   const [selectedMemoryId, setSelectedMemoryId] = useState<string | null>(null);
   const [editorMode, setEditorMode] = useState<EditorMode>("new");
   const [timelineOpen, setTimelineOpen] = useState(false);
+  const [mobileJournalsOpen, setMobileJournalsOpen] = useState(false);
   const [calendarMonth, setCalendarMonth] = useState(() => new Date(new Date().getFullYear(), new Date().getMonth(), 1));
   const [calendarSelectedDay, setCalendarSelectedDay] = useState<string | null>(null);
   const [journalTitle, setJournalTitle] = useState("");
@@ -146,6 +148,34 @@ function App() {
     setCalendarMonth((current) => new Date(current.getFullYear(), current.getMonth() + offset, 1));
     setCalendarSelectedDay(null);
   }
+
+  // Journal Insights use the same journal dates as the calendar.
+  const journalInsights = useMemo(() => {
+    const keys = Array.from(memoriesByWrittenDay.keys()).sort();
+    const monthCounts = new Map<string, number>();
+    for (const memory of memories) {
+      const day = toDateInputValue(memory.memory_date);
+      const monthKey = day.slice(0, 7);
+      monthCounts.set(monthKey, (monthCounts.get(monthKey) ?? 0) + 1);
+    }
+    const today = new Date();
+    const recentMonths = Array.from({ length: 6 }, (_, index) => {
+      const date = new Date(today.getFullYear(), today.getMonth() - 5 + index, 1);
+      const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+      return {
+        key,
+        label: new Intl.DateTimeFormat("en-US", { month: "short" }).format(date),
+        entries: monthCounts.get(key) ?? 0,
+      };
+    });
+    const maxEntries = Math.max(1, ...recentMonths.map((month) => month.entries));
+    return {
+      firstDay: keys[0] ?? null,
+      monthsWithMemories: monthCounts.size,
+      recentMonths,
+      maxEntries,
+    };
+  }, [memories, memoriesByWrittenDay]);
 
   const groupedMemories = useMemo(
     () => groupMemoriesByMonth(filteredMemories),
@@ -292,6 +322,7 @@ function App() {
     setDraftReady(false);
     setEditorMode("new");
     setTimelineOpen(false);
+    setMobileJournalsOpen(false);
     setSelectedMemoryId(null);
     setJournalMessage("");
     setJournalMenuOpen(false);
@@ -324,6 +355,7 @@ function App() {
 
   function openJournal(memory: Memory) {
     setTimelineOpen(false);
+    setMobileJournalsOpen(false);
     setSelectedMemoryId(memory.id);
     setEditorMode("view");
     setJournalMessage("");
@@ -624,9 +656,19 @@ function App() {
 
   return (
     <main className="journal-app">
-      <aside className="journal-sidebar">
+      <aside className={`journal-sidebar${mobileJournalsOpen ? " mobile-journals-open" : ""}`}>
         <div className="sidebar-top">
           <div className="sidebar-brand"><span className="brand-sparkle">✦</span><span>PAST ME</span></div>
+          <button
+            type="button"
+            className="mobile-journals-toggle"
+            aria-expanded={mobileJournalsOpen}
+            aria-controls="journal-history"
+            onClick={() => setMobileJournalsOpen((current) => !current)}
+          >
+            <span>{mobileJournalsOpen ? "Hide past journals" : "Browse past journals"}</span>
+            <span aria-hidden="true">{mobileJournalsOpen ? "⌃" : "⌄"}</span>
+          </button>
 
           <button className="new-journal-button" onClick={() => startNewJournal()}>
             <span>＋</span><span>New Journal</span>
@@ -661,7 +703,7 @@ function App() {
           </div>
         </div>
 
-        <div className="sidebar-history">
+        <div className="sidebar-history" id="journal-history">
           {memories.length === 0 ? (
             <div className="sidebar-empty-state">
               <span>○</span>
@@ -701,7 +743,7 @@ function App() {
         </div>
 
         <div className="sidebar-bottom">
-          <button className={`sidebar-tool-button ${timelineOpen ? "timeline-nav-active" : ""}`} onClick={() => { setTimelineOpen(true); setJournalMenuOpen(false); setAccountMenuOpen(false); }}><span>◷</span><span>Memory Timeline</span></button>
+          <button className={`sidebar-tool-button ${timelineOpen ? "timeline-nav-active" : ""}`} onClick={() => { setTimelineOpen(true); setMobileJournalsOpen(false); setJournalMenuOpen(false); setAccountMenuOpen(false); }}><span>◷</span><span>Journaling Calendar</span></button>
           <button className="sidebar-tool-button" onClick={takeMeBack}><span>✦</span><span>Take me back</span></button>
           <button className="sidebar-tool-button" onClick={openPocketNote}><span>♡</span><span>Pocket Note</span></button>
           <p className="sidebar-principle">Past Me reminds.<br />It never decides.</p>
@@ -732,11 +774,11 @@ function App() {
 
         <div className="workspace-stage" key={`${editorMode}-${selectedMemoryId ?? "new"}`}>
           {timelineOpen && (
-            <section className="memory-timeline-page" aria-label="Memory Timeline">
+            <section className="memory-timeline-page" aria-label="Journaling Calendar">
               <p className="eyebrow">YOUR WRITING JOURNEY</p>
               <div className="timeline-heading">
                 <div>
-                  <h1>Memory Timeline</h1>
+                  <h1>Your Journaling Calendar</h1>
                   <p>A little check for every day you showed up to write. Every entry matters.</p>
                 </div>
                 <button className="secondary-button" onClick={() => startNewJournal()}>＋ New Journal</button>
@@ -783,6 +825,47 @@ function App() {
                 <div className="calendar-stat"><span>Total journal entries</span><strong>{memories.length}</strong></div>
                 <div className="calendar-stat"><span>Total journal dates</span><strong>{memoriesByWrittenDay.size}</strong></div>
               </div>
+
+              <section className="journal-insights" aria-label="Journal Insights">
+                <div className="insights-heading">
+                  <div>
+                    <p className="eyebrow">A LOOK BACK</p>
+                    <h2>Your Journal Insights</h2>
+                    <p>Every memory you chose to keep is part of your story.</p>
+                  </div>
+                </div>
+                <div className="insights-highlights">
+                  <div className="insights-highlight">
+                    <span>Months with memories</span>
+                    <strong>{journalInsights.monthsWithMemories}</strong>
+                  </div>
+                  <div className="insights-highlight">
+                    <span>First journal date</span>
+                    <strong className="insights-first-date">{journalInsights.firstDay
+                      ? new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric" }).format(new Date(`${journalInsights.firstDay}T12:00:00`))
+                      : "Not yet"}</strong>
+                  </div>
+                </div>
+                <div className="insights-chart">
+                  <h3>Entries over the last six months</h3>
+                  <div className="insights-bars">
+                    {journalInsights.recentMonths.map((month) => (
+                      <div className="insights-bar-column" key={month.key}>
+                        <span className="insights-bar-count">{month.entries}</span>
+                        <div className="insights-bar-track">
+                          <div
+                            className="insights-bar-fill"
+                            style={{ height: `${(month.entries / journalInsights.maxEntries) * 100}%` }}
+                            aria-label={`${month.entries} entries in ${month.label}`}
+                          />
+                        </div>
+                        <span className="insights-bar-label">{month.label}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="insights-note">Based on journal dates. No streaks, no pressure.</p>
+                </div>
+              </section>
 
               {calendarSelectedDay && (
                 <section className="calendar-day-details" aria-live="polite">
